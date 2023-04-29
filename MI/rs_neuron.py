@@ -48,6 +48,7 @@ def simulate_rs(v_input, num_samples, tau, noise_input, plot=True):
         plt.plot(timestamps, v)
         plt.xlabel('Time (ms)')
         plt.ylabel('Voltage')
+        plt.savefig('rs_neuron.png')
         plt.show()
 
     return spike_location, spike_train

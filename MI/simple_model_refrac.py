@@ -9,7 +9,7 @@ from MI.inverseNoise import inverse_noise
 num_trials = 50
 tau = 0.1
 
-pulseSize = [500, 0] # on (input current magnitude), off
+pulseSize = [200, 0] # on (input current magnitude), off
 num_of_pulses = len(pulseSize)
 
 window_start = 200
@@ -136,11 +136,10 @@ for j in range(len(total_spike_count[0])):
     all_mi.append(mi)
 
 plt.rcParams.update({'font.size': 15})
-mi_x_axis = [i * 50 - window_start for i in range(len(all_mi))]
+# mi_x_axis = [i * 50 - window_start for i in range(len(all_mi))]
+mi_x_axis = [i * 50 + 300 for i in range(len(all_mi))]
 plt.scatter(mi_x_axis, all_mi)
 plt.ylabel('Mutual Information (bits)')
 plt.xlabel('Time (ms)')
+plt.savefig('rs_mi.png')
 plt.show()
-
-
-total_spike_count

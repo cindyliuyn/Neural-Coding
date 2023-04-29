@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 import os
+import math
 
 from idtxl.data import Data
 from idtxl.bivariate_pid import BivariatePID
@@ -68,17 +69,23 @@ def get_pid(stimulus_loc, neuron_a, neuron_b, estimator_type='SydneyPID'):
     target_result = results._single_target[0]
     return target_result['unq_s1'], target_result['unq_s2'], target_result['shd_s1_s2'], target_result['syn_s1_s2']
 
+# https://scipython.com/book/chapter-8-scipy/problems/p84/overlapping-circles/
+def circle_overlap_area(x1, y1, r1, x2, y2, r2):
+    d = math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
+    if d >= r1 + r2:
+        # the circles are disjoint
+        return 0
+    elif d <= abs(r1 - r2):
+        # one circle is completely contained within the other
+        return math.pi * min(r1, r2)**2
+    else:
+        # the circles intersect
+        A1 = r1**2 * math.acos((d**2 + r1**2 - r2**2) / (2*d*r1))
+        A2 = r2**2 * math.acos((d**2 + r2**2 - r1**2) / (2*d*r2))
+        A3 = 0.5 * math.sqrt((-d+r1+r2)*(d+r1-r2)*(d-r1+r2)*(d+r1+r2))
+        return A1 + A2 - A3
 
-
-def get_distance(location_a, location_b):
-    x_var_tile = location_b[0] + np.array([-1, -1, -1, 0, 0, 0, 1, 1, 1])
-    yVarTile = location_b[1] + np.array([-1, 0, 1, -1, 0, 1, -1, 0, 1])
-    r = np.min(np.sqrt((location_a[0] * np.ones([1, 9]) - x_var_tile) ** 2
-                       + (location_b[0] * np.ones([1, 9]) - yVarTile) ** 2))
-    return r
-
-
-def save_to_csv(time_step, a_ind, b_ind, source_distance, u1, u2, rd, syn):
+def save_to_csv(time_step, a_ind, b_ind, overlapping, u1, u2, rd, syn):
     param_values = list(locals().values())
     row_values = [str(v) for v in param_values]
     string = '\n' + ','.join(row_values)
@@ -89,7 +96,7 @@ def save_to_csv(time_step, a_ind, b_ind, source_distance, u1, u2, rd, syn):
         write_header = True
     with open(csv_path, 'a+') as fd:
         if write_header:
-            fd.write('time_step,source_neuron_1,source_neuron_2,neuron_distance,uniq_s1,uniq_s2,redun_s1_s2,syn_s1_s2')
+            fd.write('time_step,source_neuron_1,source_neuron_2,overlapping,uniq_s1,uniq_s2,redun_s1_s2,syn_s1_s2')
         fd.write(string)
 
 def get_all_data(n_samples, spike_counts, estimator_type): # time_step,
@@ -103,8 +110,8 @@ def get_all_data(n_samples, spike_counts, estimator_type): # time_step,
         loc_a = cell_locations[a]
         loc_b = cell_locations[b]
 
-        distance = get_distance(loc_a, loc_b)
-        print(f'Distance between the neurons: {distance}')
+        r = 0.3 # large circle of the receptive field
+        overlap = circle_overlap_area(loc_a[0], loc_a[1], r, loc_b[0], loc_b[1], r)
 
         # 2. Get the spike counts for a pair
         for time_step in range(9, 26):  # timesteps during which stimulus is on
@@ -113,7 +120,7 @@ def get_all_data(n_samples, spike_counts, estimator_type): # time_step,
 
             # 3. Get pid results
             uniq_s1, uniq_s2, redun_s1_s2, syn_s1_s2 = get_pid(stimulus_location, spike_count_a, spike_count_b, estimator_type)
-            save_to_csv(time_step, a, b, distance, uniq_s1, uniq_s2, redun_s1_s2, syn_s1_s2)
+            save_to_csv(time_step, a, b, overlap, uniq_s1, uniq_s2, redun_s1_s2, syn_s1_s2)
 
 
 def get_mi(stimulus_loc, spike_count):
@@ -147,7 +154,7 @@ mi_results = get_mi(stimulus_location, all_spike_counts[0])
 visualize_mi_results(mi_results)
 
 # Compute PID for a pair of neurons and stimulus location
-# get_all_data(300, all_spike_counts, 'TartuPID')
+get_all_data(300, all_spike_counts, 'TartuPID')
 
 
 
