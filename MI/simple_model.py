@@ -1,3 +1,10 @@
+"""
+Compute mutual information for single neuron and single stimulus
+
+Adapted from
+https://github.com/nmtimme/Neuroscience-Information-Theory-Toolbox/blob/master/Simulations/neuroDemo1.m
+"""
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt

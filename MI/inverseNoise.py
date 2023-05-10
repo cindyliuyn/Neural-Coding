@@ -1,4 +1,9 @@
-# Copied from tutorial
+"""
+Generate noise input to be added to a regular spiking neuron
+
+From Neuroscience-Information-Theory-Toolbox by Nicholas M. Timme
+https://github.com/nmtimme/Neuroscience-Information-Theory-Toolbox/blob/master/Simulations/inverseFNoise.m
+"""
 
 import numpy as np
 
